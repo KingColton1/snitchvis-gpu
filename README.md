@@ -1,12 +1,16 @@
 # SnitchVis
 
-Uses PyQt6 to render videos of [snitch](https://civwiki.org/wiki/Snitch) events from [Civ](https://civwiki.org/wiki/Main_Page) servers. Written for [CivMC](https://old.reddit.com/r/CivMC).
+Uses PyQt6 and PyOpenGL to render videos of [snitch](https://civwiki.org/wiki/Snitch) events from [Civ](https://civwiki.org/wiki/Main_Page) servers. Written for [CivMC](https://old.reddit.com/r/CivMC).
 
 Can also be used as a desktop application for precision scrubbing and manipulating visualization speed and direction.
 
 Used by [SnitchVisBot](https://github.com/tybug/snitchvisbot) to render snitches from discord.
 
+This uses GPU to render videos and images, if your server do not have a GPU, please use Tybug's original snitchvis repo.
+
 ## Installation
+
+To install PyOpenGL packages: `pip install PyOpenGL PyOpenGL_accelerate`
 
 There is a pypi package at https://pypi.org/project/snitchvis/, but I don't push updates to it because snitchvis is over the 100mb pypi limit. Therefore I recommend you install from source:
 
