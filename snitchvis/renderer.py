@@ -2,6 +2,7 @@ import numpy as np
 from PyQt6.QtGui import QPalette, QCursor, QImage
 from PyQt6.QtWidgets import QFrame
 from PyQt6.QtCore import Qt, pyqtSignal, QTimer
+from OpenGL.GL import *
 
 from snitchvis.clock import Timer
 from snitchvis.frame_renderer import FrameRenderer
@@ -12,7 +13,7 @@ GAMEPLAY_WIDTH = 600
 GAMEPLAY_HEIGHT = 450
 
 
-class Renderer(QFrame):
+class Renderer(QOpenGLWidget):
     update_time_signal = pyqtSignal(int)
     pause_signal = pyqtSignal()
     loaded_signal = pyqtSignal()
@@ -59,21 +60,40 @@ class Renderer(QFrame):
 
         self.next_frame()
 
-    def new_base_frame(self):
-        image = QImage(self.width(), self.height(), QImage.Format.Format_RGB32)
-        image.fill(Qt.GlobalColor.black)
+    def initializeGL(self):
+        glClearColor(0, 0, 0, 1.0)
 
-        paint_object = self.renderer.paint_object
+    def paintGL(self):
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+        self.renderer.paint_object = self
+        self.renderer.t = int(self.clock.get_time())
+        self.renderer.render()
+
+    def resizeGL(self, width, height):
+        glViewport(0, 0, width, height)
+        glMatrixMode(GL_PROJECTION)
+        glLoadIdentity()
+        glOrtho(0, width, height, 0, -1, 1)
+        glMatrixMode(GL_MODELVIEW)
+        glLoadIdentity()
+
+    def new_base_frame(self):
+        self.update()
+        
+        #image = QImage(self.width(), self.height(), QImage.Format.Format_RGB32)
+        #image.fill(Qt.GlobalColor.black)
+
+        #paint_object = self.renderer.paint_object
 
         # reuse this renderer to draw the base frame on a new paint object, so
         # we don't have to pay the setup cost of initializing another renderer
         # just for a new base frame.
-        self.renderer.paint_object = image
-        self.renderer.render(drawing_base_frame=True)
-        self.renderer.base_frame = image
+        #self.renderer.paint_object = image
+        #self.renderer.render(drawing_base_frame=True)
+        #self.renderer.base_frame = image
 
         # restore previous paint object
-        self.renderer.paint_object = paint_object
+        #self.renderer.paint_object = paint_object
 
     def next_frame_from_timer(self):
         """
@@ -191,14 +211,14 @@ class Renderer(QFrame):
         self.paused = False
         self.clock.resume()
 
-    def paintEvent(self, _event):
-        self.renderer.paint_object = self
-        self.renderer.t = int(self.clock.get_time())
-        self.renderer.render()
+    #def paintEvent(self, _event):
+    #    self.renderer.paint_object = self
+    #    self.renderer.t = int(self.clock.get_time())
+    #    self.renderer.render()
 
-    def resizeEvent(self, _event):
+    #def resizeEvent(self, _event):
         # TODO probably want to add some debounce here so we only calculate a
         # new frame when we stop dragging the resize. Rendering a new base frame
         # can be extremely expensive (200ms) if a large portion of the map is
         # covered.
-        self.new_base_frame()
+    #    self.new_base_frame()
